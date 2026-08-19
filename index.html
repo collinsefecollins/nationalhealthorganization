@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NHO / VN - Global Medical Directory</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f4f7fc;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0a2f44, #1b4a6b);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 5px solid #4a90e2;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 3.2rem;
+            letter-spacing: 4px;
+            font-weight: 700;
+        }
+
+        .header h1 i {
+            color: #4a90e2;
+            margin-right: 10px;
+        }
+
+        .header .sub {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-top: 8px;
+            letter-spacing: 2px;
+        }
+
+        .header .corner {
+            position: absolute;
+            right: 30px;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header .corner i {
+            margin-right: 6px;
+            color: #ffd700;
+        }
+
+        .search-section {
+            max-width: 800px;
+            margin: 30px auto 20px;
+            padding: 0 20px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 50px;
+            padding: 5px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e2e8f0;
+            transition: 0.3s;
+        }
+
+        .search-box:focus-within {
+            border-color: #1b4a6b;
+            box-shadow: 0 4px 20px rgba(27, 74, 107, 0.15);
+        }
+
+        .search-box i {
+            color: #8896ab;
+            font-size: 1.2rem;
+        }
+
+        .search-box input {
+            border: none;
+            padding: 16px 15px;
+            width: 100%;
+            font-size: 1.1rem;
+            outline: none;
+            background: transparent;
+        }
+
+        .search-box input::placeholder {
+            color: #b0bec5;
+        }
+
+        .counter {
+            text-align: center;
+            color: #64748b;
+            margin: 15px 0 10px;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px 20px 50px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 6px solid #4a90e2;
+            transition: 0.25s ease;
+            display: none;
+        }
+
+        .card.visible {
+            display: block;
+            animation: fadeUp 0.3s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card .name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0a2f44;
+            margin-bottom: 4px;
+        }
+
+        .card .badge-status {
+            display: inline-block;
+            background: #ffedd5;
+            color: #9a3412;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .card .detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            color: #334155;
+            font-size: 0.98rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .card .detail:last-of-type {
+            border-bottom: none;
+        }
+
+        .card .detail i {
+            width: 22px;
+            color: #1b4a6b;
+            font-size: 0.95rem;
+        }
+
+        .card .detail .label {
+            font-weight: 600;
+            color: #0f172a;
+            margin-right: 4px;
+        }
+
+        .payment-section {
+            margin-top: 18px;
+            padding-top: 15px;
+            border-top: 2px dashed #e2e8f0;
+            display: none;
+        }
+
+        .payment-section.active {
+            display: block;
+            animation: fadeUp 0.4s ease;
+        }
+
+        .payment-section h4 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+
+        .payment-section h4 i {
+            color: #22c55e;
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pay-method {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .pay-method i {
+            color: #1b4a6b;
+        }
+
+        .pay-method:hover {
+            background: #1b4a6b;
+            color: white;
+            border-color: #1b4a6b;
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(27, 74, 107, 0.25);
+        }
+
+        .pay-method:hover i {
+            color: white;
+        }
+
+        .pay-method:active {
+            transform: scale(0.95);
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            font-size: 1.2rem;
+            display: none;
+        }
+
+        .no-results.visible {
+            display: block;
+        }
+
+        /* ---------- MODAL (Loading + Red Error) ---------- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-box {
+            background: white;
+            max-width: 420px;
+            width: 90%;
+            padding: 35px 30px 30px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.3s ease;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-box .icon-large {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .modal-box .spinner {
+            color: #1b4a6b;
+        }
+
+        .modal-box .error-icon {
+            color: #dc2626;
+        }
+
+        .modal-box h2 {
+            font-size: 1.6rem;
+            color: #0a2f44;
+            margin-bottom: 4px;
+        }
+
+        .modal-box .sub-text {
+            color: #475569;
+            font-size: 1rem;
+            margin: 8px 0 18px;
+            line-height: 1.6;
+        }
+
+        .modal-box .sub-text strong {
+            color: #0a2f44;
+        }
+
+        .modal-box .btn-close {
+            background: #1b4a6b;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 5px;
+        }
+
+        .modal-box .btn-close:hover {
+            transform: scale(1.02);
+        }
+
+        .modal-box .btn-close:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-box .btn-close.error-btn {
+            background: #b91c1c;
+        }
+
+        .modal-box .btn-close.error-btn:hover {
+            background: #7f1d1d;
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            .header .corner {
+                position: static;
+                display: inline-block;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="corner"><i class="fas fa-globe-americas"></i> UN Affiliated</div>
+        <h1><i class="fas fa-heartbeat"></i> NHO / VN</h1>
+        <div class="sub">National Health Organization · Virtual Network</div>
+        <div style="margin-top:10px; font-size:0.9rem; opacity:0.6;">
+            <i class="fas fa-user-md"></i> 3,000+ Verified Medical Professionals Worldwide
+        </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-section">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search for a doctor's name..." />
+        </div>
+        <div class="counter" id="resultCounter">Showing 0 of 40 doctors</div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="container" id="cardContainer">
+        <div class="no-results" id="noResults">No doctors found with that name.</div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-box" id="modalBox">
+            <div id="modalContent">
+                <!-- Dynamically injected -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 1. DOCTOR DATA (40+ names – add more here!)
+        // ============================================================
+        var doctors = [
+            { name: "Steve Miller", from: "Pennsylvania", currentlyIn: "Somalia", job: "Medical Doctor",
+            status: null },
+            { name: "Anthony Mike", from: "Honolulu, Hawaii", currentlyIn: "Iraq", job: "Surgeon and Orthopedic",
+                status: null },
+            { name: "James Thomas", from: "Honolulu, Hawaii", currentlyIn: "Iraq", job: "Engineer", status: null },
+            { name: "Williams Bedinfield", from: "Honolulu, Hawaii", currentlyIn: "Iraq", job: "Surgeon and Orthopedic",
+                status: null },
+            { name: "Samson Donald", from: "Sacramento, California", currentlyIn: "Iceland", job: "Rig Engineer",
+                status: "Awaiting payment for flight ticket" },
+            { name: "Sarah Chen", from: "San Francisco, CA", currentlyIn: "Kenya", job: "Pediatrician", status: null },
+            { name: "Michael Okafor", from: "Lagos, Nigeria", currentlyIn: "United Kingdom", job: "Cardiologist",
+                status: null },
+            { name: "Emily Watson", from: "London, UK", currentlyIn: "Ukraine", job: "Trauma Surgeon", status: null },
+            { name: "Carlos Mendez", from: "Mexico City, Mexico", currentlyIn: "Colombia", job: "Neurologist",
+                status: null },
+            { name: "Aisha Khoury", from: "Beirut, Lebanon", currentlyIn: "Syria", job: "Anesthesiologist",
+            status: null },
+            { name: "David Kim", from: "Seoul, South Korea", currentlyIn: "Philippines", job: "Dermatologist",
+                status: null },
+            { name: "Maria Garcia", from: "Madrid, Spain", currentlyIn: "Ethiopia", job: "OB-GYN", status: null },
+            { name: "James O'Brian", from: "Dublin, Ireland", currentlyIn: "South Sudan", job: "General Surgeon",
+                status: null },
+            { name: "Li Wei", from: "Beijing, China", currentlyIn: "Pakistan", job: "Oncologist", status: null },
+            { name: "Chloe Dubois", from: "Paris, France", currentlyIn: "DR Congo", job: "Infectious Disease",
+                status: null },
+            { name: "Raj Patel", from: "Mumbai, India", currentlyIn: "Nepal", job: "Orthopedic Surgeon", status: null },
+            { name: "Fatima Al-Hassan", from: "Cairo, Egypt", currentlyIn: "Libya", job: "Radiologist", status: null },
+            { name: "Peter Kowalski", from: "Warsaw, Poland", currentlyIn: "Moldova", job: "Psychiatrist", status: null },
+            { name: "Jessica Tan", from: "Singapore", currentlyIn: "Indonesia", job: "Pediatric Surgeon", status: null },
+            { name: "Samuel Adeyemi", from: "Accra, Ghana", currentlyIn: "Mali", job: "Emergency Medicine",
+            status: null },
+            { name: "Nina Petrov", from: "Moscow, Russia", currentlyIn: "Armenia", job: "Endocrinologist",
+            status: null },
+            { name: "Hiro Tanaka", from: "Tokyo, Japan", currentlyIn: "Thailand", job: "Neurosurgeon", status: null },
+            { name: "Amara Ndiaye", from: "Dakar, Senegal", currentlyIn: "Chad", job: "Public Health", status: null },
+            { name: "Lucas Ferrari", from: "Rome, Italy", currentlyIn: "Tunisia", job: "Cardiothoracic Surgeon",
+                status: null },
+            { name: "Elena Ivanova", from: "Sofia, Bulgaria", currentlyIn: "Georgia", job: "Pulmonologist",
+            status: null },
+            { name: "Kwame Asare", from: "Nairobi, Kenya", currentlyIn: "Rwanda", job: "Family Medicine", status: null },
+            { name: "Olivia Smith", from: "Sydney, Australia", currentlyIn: "Papua New Guinea", job: "Rural GP",
+                status: null },
+            { name: "Ahmed Bin Khalid", from: "Riyadh, KSA", currentlyIn: "Yemen", job: "Trauma Surgeon",
+            status: null },
+            { name: "Megan Foster", from: "Toronto, Canada", currentlyIn: "Haiti", job: "Internist", status: null },
+            { name: "Diego Santos", from: "Sao Paulo, Brazil", currentlyIn: "Bolivia", job: "Urologist", status: null },
+            { name: "Yuki Sato", from: "Osaka, Japan", currentlyIn: "Myanmar", job: "Ophthalmologist", status: null },
+            { name: "Isabella Rossi", from: "Milan, Italy", currentlyIn: "Albania", job: "Plastic Surgeon",
+            status: null },
+            { name: "Thabo Mbeki", from: "Johannesburg, SA", currentlyIn: "Zimbabwe", job: "Pathologist", status: null },
+            { name: "Clara Schmidt", from: "Berlin, Germany", currentlyIn: "Jordan", job: "Gastroenterologist",
+                status: null },
+            { name: "Omar Farouk", from: "Khartoum, Sudan", currentlyIn: "South Africa", job: "Vascular Surgeon",
+                status: null },
+            { name: "Priya Sharma", from: "Delhi, India", currentlyIn: "Bangladesh", job: "Nephrologist", status: null },
+            { name: "Hans Mueller", from: "Vienna, Austria", currentlyIn: "Kosovo", job: "Orthopedic Surgeon",
+                status: null },
+            { name: "Grace Akinyi", from: "Kampala, Uganda", currentlyIn: "Tanzania", job: "Pediatrician",
+            status: null },
+            { name: "Felipe Ortega", from: "Buenos Aires, ARG", currentlyIn: "Paraguay", job: "Cardiologist",
+                status: null },
+            { name: "Ananya Chatterjee", from: "Kolkata, India", currentlyIn: "Sri Lanka", job: "Anesthesiologist",
+                status: null }
+        ];
+
+        var paymentMethods = [
+            { icon: "fa-gift", label: "Pay with Gift Card" },
+            { icon: "fa-university", label: "Money Transfer" },
+            { icon: "fa-mobile-alt", label: "Cash App" },
+            { icon: "fa-venmo", label: "Venmo" }
+        ];
+
+        // DOM refs
+        var container = document.getElementById('cardContainer');
+        var searchInput = document.getElementById('searchInput');
+        var resultCounter = document.getElementById('resultCounter');
+        var noResults = document.getElementById('noResults');
+        var modalOverlay = document.getElementById('paymentModal');
+        var modalContent = document.getElementById('modalContent');
+
+        var modalTimeout = null;
+
+        // ============================================================
+        // 2. OPEN MODAL : Loading -> Red Error
+        // ============================================================
+        function openModal(methodName, doctorName) {
+            if (modalTimeout) {
+                clearTimeout(modalTimeout);
+                modalTimeout = null;
+            }
+
+            // Show modal with LOADING state
+            modalOverlay.classList.add('show');
+            modalContent.innerHTML =
+                '<div class="icon-large spinner"><i class="fas fa-spinner fa-spin"></i></div>' +
+                '<h2>Processing</h2>' +
+                '<p class="sub-text">Please wait, verifying payment for <br><strong>' + doctorName +
+                '</strong> via ' + methodName + '...</p>' +
+                '<button class="btn-close" disabled>Processing...</button>';
+
+            // After 2 seconds, switch to RED ERROR message
+            modalTimeout = setTimeout(function() {
+                modalContent.innerHTML =
+                    '<div class="icon-large error-icon"><i class="fas fa-times-circle"></i></div>' +
+                    '<h2 style="color:#b91c1c;">Transaction Failed</h2>' +
+                    '<p class="sub-text">' +
+                    '<strong>' + doctorName + '</strong> · ' + methodName + '<br><br>' +
+                    '<span style="font-weight:700;color:#b91c1c;font-size:1.05rem;">This transaction cannot be completed online. Please contact our account officer.</span>' +
+                    '</p>' +
+                    '<button class="btn-close error-btn" onclick="closeModal()">OK, Got it</button>';
+                modalTimeout = null;
+            }, 2000);
+        }
+
+        // ============================================================
+        // 3. CLOSE MODAL
+        // ============================================================
+        function closeModal() {
+            if (modalTimeout) {
+                clearTimeout(modalTimeout);
+                modalTimeout = null;
+            }
+            modalOverlay.classList.remove('show');
+        }
+
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        // ============================================================
+        // 4. RENDER CARDS
+        // ============================================================
+        function renderCards(query) {
+            var cards = container.querySelectorAll('.card');
+            for (var i = 0; i < cards.length; i++) {
+                cards[i].remove();
+            }
+            noResults.classList.remove('visible');
+
+            var lowerQuery = query.toLowerCase().trim();
+            var visibleCount = 0;
+
+            for (var j = 0; j < doctors.length; j++) {
+                var doc = doctors[j];
+                var card = document.createElement('div');
+                card.className = 'card';
+                var match = lowerQuery === '' || doc.name.toLowerCase().indexOf(lowerQuery) !== -1;
+
+                if (match) {
+                    card.classList.add('visible');
+                    visibleCount++;
+                }
+
+                var statusHTML = '';
+                if (doc.status) {
+                    statusHTML = '<div class="badge-status"><i class="fas fa-exclamation-triangle"></i> ' + doc
+                        .status + '</div>';
+                }
+
+                var methodsHTML = '';
+                for (var k = 0; k < paymentMethods.length; k++) {
+                    var pm = paymentMethods[k];
+                    var safeName = doc.name.replace(/'/g, "\\'");
+                    var safeMethod = pm.label.replace(/'/g, "\\'");
+                    methodsHTML +=
+                        '<span class="pay-method" onclick="openModal(\'' + safeMethod + '\', \'' + safeName +
+                        '\')"><i class="fas ' + pm.icon + '"></i> ' + pm.label + '</span>';
+                }
+
+                card.innerHTML =
+                    '<div class="name">' + doc.name + '</div>' +
+                    statusHTML +
+                    '<div class="detail"><i class="fas fa-map-pin"></i> <span><span class="label">From:</span> ' +
+                    doc.from + '</span></div>' +
+                    '<div class="detail"><i class="fas fa-plane"></i> <span><span class="label">Currently in:</span> ' +
+                    doc.currentlyIn + '</span></div>' +
+                    '<div class="detail"><i class="fas fa-briefcase"></i> <span><span class="label">Job:</span> ' +
+                    doc.job + '</span></div>' +
+                    '<div class="payment-section ' + (match ? 'active' : '') + '">' +
+                    '<h4><i class="fas fa-credit-card"></i> Click to Pay</h4>' +
+                    '<div class="payment-methods">' + methodsHTML + '</div>' +
+                    '</div>';
+
+                container.appendChild(card);
+            }
+
+            resultCounter.textContent = 'Showing ' + visibleCount + ' of ' + doctors.length + ' doctors';
+            if (visibleCount === 0 && query.trim() !== '') {
+                noResults.classList.add('visible');
+            }
+        }
+
+        renderCards('');
+
+        searchInput.addEventListener('input', function(e) {
+            renderCards(e.target.value);
+        });
+
+        console.log('NHO/VN Directory loaded with ' + doctors.length + ' doctors.');
+    </script>
+
+</body>
+</html>
